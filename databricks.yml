@@ -1,0 +1,30 @@
+# databricks.yml
+bundle:
+  name: novamart-lakehouse
+
+targets:
+  # 1. Development Target
+  dev:
+    workspace:
+      # (IMPORTANT: Apne Databricks Workspace ka URL yahan paste karein)
+      host: https://dbc-0c7a6a9e-967f.cloud.databricks.com/ 
+      # (Apna email path set karein jahan code deploy hoga)
+      root_path: /Users/mehranalikhan99@gmail.com/novamart-lakehouse/dev
+
+  # 2. Staging Target
+  staging:
+    workspace:
+      host: https://adb-your-workspace-id.azuredatabricks.net 
+      root_path: /Users/mehranalikhan99@gmail.com/novamart-lakehouse/staging
+
+resources:
+  jobs:
+    novamart_daily_job:
+      name: "NovaMart Daily Ingestion Job"
+      tasks:
+        - task_key: run_pipeline
+          notebook_task:
+            # Ye file kal hum banayenge
+            notebook_path: ./src/pipeline_notebook.py
+          # 2026 rules ke mutabik Serverless compute use hoga
+          serverless: true
