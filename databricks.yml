@@ -144,6 +144,13 @@ resources:
           notebook_task:
             notebook_path: ./src/gold/06_fact_low_stock_alert
             source: WORKSPACE
+        - task_key: 07_run_unit_tests
+          depends_on:
+            - task_key: 05_fact_daily_sales
+            - task_key: 06_fact_low_stock_alert
+          notebook_task:
+            notebook_path: ./tests/test_transformations
+            source: WORKSPACE
       queue:
         enabled: true
 
