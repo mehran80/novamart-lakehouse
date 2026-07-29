@@ -1,0 +1,150 @@
+# This is a Declarative Automation Bundle definition for my_project.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: novamart-lakehouse
+
+variables:
+  catalog:
+    description: "The catalog to use in Unity Catalog"
+    default: "novamart"
+  schema:
+    description: "The schema to use (bronze, silver, gold)"
+    default: "dev"
+    
+targets:
+  dev:
+    # The default target uses 'mode: development' to create a development copy.
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-0c7a6a9e-967f.cloud.databricks.com
+    variables:
+      catalog: novamart_dev
+      schema: ${workspace.current_user.short_name}
+  stagging:
+    mode: development
+    workspace:
+      host: https://dbc-0c7a6a9e-967f.cloud.databricks.com
+      root_path: /Workspace/Users/mehranalikhan99@gmail.com/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: novamart_stagging
+      schema: ${workspace.current_user.short_name}
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-0c7a6a9e-967f.cloud.databricks.com
+      # We explicitly deploy to /Workspace/Users/mehranalikhan99@gmail.com to make sure we only have a single copy.
+      root_path: /Workspace/Users/mehranalikhan99@gmail.com/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: novamart_production
+      schema: ${workspace.current_user.short_name}
+    permissions:
+      - user_name: mehranalikhan99@gmail.com
+        level: CAN_MANAGE
+resources:
+  jobs:
+    novamart_orchestration_pipeline:
+      name: novamart_orchestration_pipeline
+
+      performance_target: PERFORMANCE_OPTIMIZED
+
+      schedule:
+          quartz_cron_expression: "0 0 2 * * ?"
+          timezone_id: "UTC"
+          pause_status: "UNPAUSED"
+
+      tasks:
+        - task_key: setup_enviornment
+          notebook_task:
+            notebook_path: ./src/setup/00_setup_environment
+            source: WORKSPACE
+        - task_key: Bronze_Ingestion
+          depends_on:
+            - task_key: setup_enviornment
+          notebook_task:
+            notebook_path: ./src/bronze/00_ingest_raw_to_bronze
+            source: WORKSPACE
+        - task_key: 01a_clean_sql_customers
+          depends_on:
+            - task_key: Bronze_Ingestion
+          notebook_task:
+            notebook_path: ./src/silver/01a_clean_sql_customers
+            source: WORKSPACE
+        - task_key: 01b_clean_crm_customers
+          depends_on:
+            - task_key: Bronze_Ingestion
+          notebook_task:
+            notebook_path: ./src/silver/01b_clean_crm_customers
+            source: WORKSPACE
+        - task_key: 00_dim_customers
+          depends_on:
+            - task_key: 01a_clean_sql_customers
+            - task_key: 01b_clean_crm_customers
+          notebook_task:
+            notebook_path: ./src/gold/00_dim_customers
+            source: WORKSPACE
+        - task_key: 01c_clean_sql_products
+          depends_on:
+            - task_key: Bronze_Ingestion
+          notebook_task:
+            notebook_path: ./src/silver/01c_clean_sql_products
+            source: WORKSPACE
+        - task_key: 01_dim_products
+          depends_on:
+            - task_key: 01c_clean_sql_products
+          notebook_task:
+            notebook_path: ./src/gold/01_dim_products
+            source: WORKSPACE
+        - task_key: 02_fact_inventory
+          depends_on:
+            - task_key: 01_dim_products
+          notebook_task:
+            notebook_path: ./src/gold/02_fact_inventory
+            source: WORKSPACE
+        - task_key: 01d_clean_sql_sale_transactions
+          depends_on:
+            - task_key: Bronze_Ingestion
+          notebook_task:
+            notebook_path: ./src/silver/01d_clean_sql_sale_transactions
+            source: WORKSPACE
+        - task_key: 03_fact_sales
+          depends_on:
+            - task_key: 01d_clean_sql_sale_transactions
+          notebook_task:
+            notebook_path: ./src/gold/03_fact_sales
+            source: WORKSPACE
+        - task_key: 05_fact_daily_sales
+          depends_on:
+            - task_key: 00_dim_customers
+            - task_key: 01_dim_products
+            - task_key: 03_fact_sales
+          notebook_task:
+            notebook_path: ./src/gold/05_fact_daily_sales
+            source: WORKSPACE
+        - task_key: 01e_clean_clickstream
+          depends_on:
+            - task_key: Bronze_Ingestion
+          notebook_task:
+            notebook_path: ./src/silver/01e_clean_clickstream
+            source: WORKSPACE
+        - task_key: 04_fact_clicks
+          depends_on:
+            - task_key: 01e_clean_clickstream
+          notebook_task:
+            notebook_path: ./src/gold/04_fact_clicks
+            source: WORKSPACE
+        - task_key: 06_fact_low_stock_alert
+          depends_on:
+            - task_key: 02_fact_inventory
+            - task_key: 01_dim_products
+            - task_key: 04_fact_clicks
+          notebook_task:
+            notebook_path: ./src/gold/06_fact_low_stock_alert
+            source: WORKSPACE
+      queue:
+        enabled: true
+
+          
