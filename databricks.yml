@@ -59,62 +59,62 @@ resources:
       tasks:
         - task_key: setup_enviornment
           notebook_task:
-            notebook_path: ./src/setup/00_setup_environment
+            notebook_path: ./src/setup/00_setup_environment.ipynb
             source: WORKSPACE
         - task_key: Bronze_Ingestion
           depends_on:
             - task_key: setup_enviornment
           notebook_task:
-            notebook_path: ./src/bronze/00_ingest_raw_to_bronze
+            notebook_path: ./src/bronze/00_ingest_raw_to_bronze.ipynb
             source: WORKSPACE
         - task_key: 01a_clean_sql_customers
           depends_on:
             - task_key: Bronze_Ingestion
           notebook_task:
-            notebook_path: ./src/silver/01a_clean_sql_customers
+            notebook_path: ./src/silver/01a_clean_sql_customers.ipynb
             source: WORKSPACE
         - task_key: 01b_clean_crm_customers
           depends_on:
             - task_key: Bronze_Ingestion
           notebook_task:
-            notebook_path: ./src/silver/01b_clean_crm_customers
+            notebook_path: ./src/silver/01b_clean_crm_customers.ipynb
             source: WORKSPACE
         - task_key: 00_dim_customers
           depends_on:
             - task_key: 01a_clean_sql_customers
             - task_key: 01b_clean_crm_customers
           notebook_task:
-            notebook_path: ./src/gold/00_dim_customers
+            notebook_path: ./src/gold/00_dim_customers.ipynb
             source: WORKSPACE
         - task_key: 01c_clean_sql_products
           depends_on:
             - task_key: Bronze_Ingestion
           notebook_task:
-            notebook_path: ./src/silver/01c_clean_sql_products
+            notebook_path: ./src/silver/01c_clean_sql_products.ipynb
             source: WORKSPACE
         - task_key: 01_dim_products
           depends_on:
             - task_key: 01c_clean_sql_products
           notebook_task:
-            notebook_path: ./src/gold/01_dim_products
+            notebook_path: ./src/gold/01_dim_products.ipynb
             source: WORKSPACE
         - task_key: 02_fact_inventory
           depends_on:
             - task_key: 01_dim_products
           notebook_task:
-            notebook_path: ./src/gold/02_fact_inventory
+            notebook_path: ./src/gold/02_fact_inventory.ipynb
             source: WORKSPACE
         - task_key: 01d_clean_sql_sale_transactions
           depends_on:
             - task_key: Bronze_Ingestion
           notebook_task:
-            notebook_path: ./src/silver/01d_clean_sql_sale_transactions
+            notebook_path: ./src/silver/01d_clean_sql_sale_transactions.ipynb
             source: WORKSPACE
         - task_key: 03_fact_sales
           depends_on:
             - task_key: 01d_clean_sql_sale_transactions
           notebook_task:
-            notebook_path: ./src/gold/03_fact_sales
+            notebook_path: ./src/gold/03_fact_sales.ipynb
             source: WORKSPACE
         - task_key: 05_fact_daily_sales
           depends_on:
@@ -122,19 +122,19 @@ resources:
             - task_key: 01_dim_products
             - task_key: 03_fact_sales
           notebook_task:
-            notebook_path: ./src/gold/05_fact_daily_sales
+            notebook_path: ./src/gold/05_fact_daily_sales.ipynb
             source: WORKSPACE
         - task_key: 01e_clean_clickstream
           depends_on:
             - task_key: Bronze_Ingestion
           notebook_task:
-            notebook_path: ./src/silver/01e_clean_clickstream
+            notebook_path: ./src/silver/01e_clean_clickstream.ipynb
             source: WORKSPACE
         - task_key: 04_fact_clicks
           depends_on:
             - task_key: 01e_clean_clickstream
           notebook_task:
-            notebook_path: ./src/gold/04_fact_clicks
+            notebook_path: ./src/gold/04_fact_clicks.ipynb
             source: WORKSPACE
         - task_key: 06_fact_low_stock_alert
           depends_on:
@@ -142,14 +142,14 @@ resources:
             - task_key: 01_dim_products
             - task_key: 04_fact_clicks
           notebook_task:
-            notebook_path: ./src/gold/06_fact_low_stock_alert
+            notebook_path: ./src/gold/06_fact_low_stock_alert.ipynb
             source: WORKSPACE
         - task_key: 07_run_unit_tests
           depends_on:
             - task_key: 05_fact_daily_sales
             - task_key: 06_fact_low_stock_alert
           notebook_task:
-            notebook_path: ./tests/test_transformations
+            notebook_path: ./tests/test_transformations.py
             source: WORKSPACE
       queue:
         enabled: true

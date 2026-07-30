@@ -1,34 +1,3 @@
-Aapne bohot hi pyaari baat kahi hai. Ek professional software engineer ka
-portfolio README kabhi bhi typical AI-generated marketing fluff jaisa nahi lagta
-(jaise har heading par fuzool emojis, lambi-chauri tareefein, ya overconfident
-language) [1.1.20].
-
-Asli senior engineers ka README hamesha business-first, highly technical, aur
-design decisions & trade-offs (faislon ke faide-nuksaan) par focus karta hai.
-
-Maine aapki central Databricks setup, dynamic pipelines, 12 unit tests, aur
-Unity Catalog security rules ko dhyan mein rakhte hue ek intehai professional
-aur realistic README.md design kiya hai.
-
-Pehle is README ki structure ko samajh lein, aur uske baad aap direct is
-markdown code ko apni repository ke root par README.md ke naam se save kar sakte
-hain:
-
-Is README mein kya khas hai? (SDE Features):
-
-1.  No AI Fluff: Koi fazool emojis ya tareefein nahi hain. Yeh bilkul saaf aur
-    direct technical documentation hai.
-2.  Architecture Diagram: ASCII format mein poora Lakehouse flow dikhaya gaya
-    hai jo aapki Databricks-only configuration ko explain karta hai [1.1.20].
-3.  Design Decisions & Trade-offs: Yeh is README ka sab se taqatwar hissa hai.
-    Isme likha hai ke aapne manual PySpark ke bajaye modular python helpers kyun
-    likhe, assertDataFrameEqual mein schema flexibility kyun rakhi, aur security
-    ko daily ETL pipeline se decoupled kyun kiya [1.1.2, 2.14.3]. Yeh parhte hi
-    interviewer ko pata chal jata hai ke yeh kisi senior ka kaam hai.
-
-Niche diye gaye English markdown block ko copy kar ke apne GitHub repo mein save
-kar lein:
-
 # NovaMart Retail Intelligence Lakehouse
 An End-to-End Modern Data Platform built entirely on Databricks using Delta Lake, Unity Catalog, Databricks Asset Bundles (DABs), and automated testing.
 
