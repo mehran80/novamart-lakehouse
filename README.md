@@ -16,6 +16,7 @@ The objective of this platform is to build a highly optimized, audited, and secu
 ## 2. Architecture & Data Flow
 The platform is built entirely inside the Databricks Lakehouse, utilizing Databricks Workflows (Lakeflow Jobs) for orchestration, Auto Loader for streaming/batch ingestion, Delta Lake for storage, and Unity Catalog for centralized data governance.
 
+```mermaid 
 RAW LANDING (Volumes) BRONZE (Raw Logs) SILVER (Conformed) GOLD (Serving)
 ┌───────────────────────┐ ┌───────────────────────┐
 ┌───────────────────────────┐ ┌────────────────────────────────┐ │ - SQL
@@ -33,7 +34,7 @@ agg_daily_sales (BI) │ │ (Kafka Topic) │ │ (Streaming Ingest) │ │ �
 fct_low_stock_alerts (Real) │ └───────────────────────┘
 └───────────────────────┘ └───────────────────────────┘
 └────────────────────────────────┘
-
+`
 
 ---
 
