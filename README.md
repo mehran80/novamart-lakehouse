@@ -91,7 +91,7 @@ novamart-lakehouse/
 │   │   ├── 03_fact_sales.ipynb             # Validated Sales Fact
 │   │   ├── 04_fact_clicks.ipynb
 
-
+```
 ---
 
 ## 4. Key Design Decisions & Architectural Trade-offs
