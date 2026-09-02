@@ -71,23 +71,25 @@ flowchart LR
 ---
 
 ## 3. Repository Structure
-The repository is structured following standard software engineering best practices, separating helper modules, transformation pipelines, governance, and testing suites:
-
-novamart-lakehouse/ ├── databricks.yml # DAB bundle definition (Jobs & Targets
-as Code) ├── src/ │ ├── 00_setup_environment.ipynb │ ├── bronze/ │ │
-└── 00_ingest_raw_to_bronze.ipynb # Parameterized Auto Loader helper │ ├──
-silver/ │ │ ├── 01a_clean_sql_customers.ipynb │ │
-├── 01b_clean_crm_customers.ipynb │ │ ├── 01c_clean_sql_products.ipynb │ │
-├── 01d_clean_sql_sale_transactions.ipynb │ │ └── 01e_clean_clickstream.ipynb │
-├── gold/ │ │ ├── 00_dim_customers.ipynb # SQL + CRM Joined Master (MDM) │ │
-├── 01_dim_products.ipynb # Product Dim with Margins │ │
-├── 02_fact_inventory.ipynb # Inventory Fact │ │ ├── 03_fact_sales.ipynb #
-Validated Sales Fact │ │ ├── 04_fact_clicks.ipynb # Clickstream Fact │ │
-├── 05_fact_daily_sales.ipynb # Daily aggregate Datamart │ │
-└── 06_fact_low_stock_alert.ipynb # Dynamic low-stock streaming alert │ └──
-governance/ │ └── 04_apply_governance_policies.sql # Unity Catalog ABAC/RLS
-policies └── tests/ └── test_transformations.py # 12 Pytest unit tests (Arrow &
-Spark Connect safe)
+```
+novamart-lakehouse/
+├── databricks.yml                          # DAB bundle definition (Jobs & Targets as Code)
+├── src/
+│   ├── 00_setup_environment.ipynb
+│   ├── bronze/
+│   │   └── 00_ingest_raw_to_bronze.ipynb   # Parameterized Auto Loader helper
+│   ├── silver/
+│   │   ├── 01a_clean_sql_customers.ipynb
+│   │   ├── 01b_clean_crm_customers.ipynb
+│   │   ├── 01c_clean_sql_products.ipynb
+│   │   ├── 01d_clean_sql_sale_transactions.ipynb
+│   │   └── 01e_clean_clickstream.ipynb
+│   ├── gold/
+│   │   ├── 00_dim_customers.ipynb          # SQL + CRM Joined Master (MDM)
+│   │   ├── 01_dim_products.ipynb           # Product Dim with Margins
+│   │   ├── 02_fact_inventory.ipynb         # Inventory Fact
+│   │   ├── 03_fact_sales.ipynb             # Validated Sales Fact
+│   │   ├── 04_fact_clicks.ipynb
 
 
 ---
