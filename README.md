@@ -17,24 +17,55 @@ The objective of this platform is to build a highly optimized, audited, and secu
 The platform is built entirely inside the Databricks Lakehouse, utilizing Databricks Workflows (Lakeflow Jobs) for orchestration, Auto Loader for streaming/batch ingestion, Delta Lake for storage, and Unity Catalog for centralized data governance.
 
 
-RAW LANDING (Volumes) BRONZE (Raw Logs) SILVER (Conformed) GOLD (Serving)
-```mermaid 
-┌───────────────────────┐ ┌───────────────────────┐
-┌───────────────────────────┐ ┌────────────────────────────────┐ │ - SQL
-Customers │ │ │ │ - sql_customers (clean) │ │ - dim_customer_master (MDM) │ │ -
-SQL Products │──▶│ Databricks │──▶│ - sql_products (clean) │──▶│ - dim_product
-(catalog) │ │ - SQL Sales │ │ Auto Loader │ │ - crm_customers (clean) │ │ -
-fct_sales (validated fact) │ │ - CRM Customers (API)│ │ (Append-Only, │ │ -
-sales_transactions │ │ - fct_clickstream (web events)│ └───────────────────────┘
-│ ingestion metadata) │ │ - clickstream │ └────────────────────────────────┘
-└───────────────────────┘ └───────────────────────────┘ │ REAL-TIME
-STREAMING ▼ ┌───────────────────────┐ ┌───────────────────────┐
-┌───────────────────────────┐ ┌────────────────────────────────┐ │ - Website
-Clicks │──▶│ Kafka / Auto Loader │──▶│ - clickstream (clean) │──▶│ -
-agg_daily_sales (BI) │ │ (Kafka Topic) │ │ (Streaming Ingest) │ │ │ │ -
-fct_low_stock_alerts (Real) │ └───────────────────────┘
-└───────────────────────┘ └───────────────────────────┘
-└────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph RAW["RAW LANDING (Volumes)"]
+        R1[SQL Customers]
+        R2[SQL Products]
+        R3[SQL Sales]
+        R4[CRM Customers - API]
+        R5[Website Clicks]
+    end
+
+    subgraph BRONZE["BRONZE (Raw Logs)"]
+        B1[Databricks Auto Loader<br/>Append-Only, ingestion metadata]
+        B2[Kafka / Auto Loader<br/>Kafka Topic, Streaming Ingest]
+    end
+
+    subgraph SILVER["SILVER (Conformed)"]
+        S1[sql_customers - clean]
+        S2[sql_products - clean]
+        S3[crm_customers - clean]
+        S4[clickstream - clean]
+    end
+
+    subgraph GOLD["GOLD (Serving)"]
+        G1[dim_customer_master - MDM]
+        G2[dim_product - catalog]
+        G3[fct_sales - validated fact]
+        G4[fct_clickstream - web events]
+        G5[agg_daily_sales - BI]
+        G6[fct_low_stock_alerts - Real-time]
+    end
+
+    R1 --> B1
+    R2 --> B1
+    R3 --> B1
+    R4 --> B1
+    R5 -.Real-Time Streaming.-> B2
+
+    B1 --> S1
+    B1 --> S2
+    B1 --> S3
+    B2 --> S4
+
+    S1 --> G1
+    S3 --> G1
+    S2 --> G2
+    S1 --> G3
+    S4 --> G4
+    S1 --> G5
+    S4 --> G6
 ```
 
 ---
