@@ -1,11 +1,55 @@
 # Databricks notebook source
-import pytest
+import os
 import sys
+import pytest
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DecimalType, BooleanType, DateType, TimestampType
 from pyspark.testing.utils import assertDataFrameEqual
 from decimal import Decimal
 import datetime as dt
+
+# ----------------------------------------------------------------------
+# Make src/ importable when running locally / in CI (outside Databricks).
+# In Databricks, these same functions are also reachable via `%run`, so
+# this block is what makes the file dual-purpose: works as a Databricks
+# notebook AND as a plain pytest module.
+# ----------------------------------------------------------------------
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
+
+from utils.silver_transformations import (
+    bronze_sql_customers_silver,
+    bronze_crm_customers_silver,
+    bronze_sql_products_silver,
+    bronze_sql_sale_transactions,
+    bronze_clickstream,
+)
+from utils.gold_transformations import (
+    transfer_silver_to_gold_dim_customer,
+    transfer_silver_to_gold_dim_products,
+    transfer_silver_to_gold_fact_inventory,
+    transfer_silver_to_gold_fact_sales,
+    transfer_silver_to_gold_fact_clicks,
+    daily_sales,
+    low_stock_alert,
+)
+
+# ----------------------------------------------------------------------
+# In Databricks, `spark` is auto-injected into every notebook. Outside
+# Databricks (local pytest, GitHub Actions), we have to create it ourselves.
+# ----------------------------------------------------------------------
+# Newer JDKs (17+) block the low-level memory access that Apache Arrow (used
+# by @pandas_udf) needs, unless explicitly reopened via --add-opens. Without
+# this, pandas_udf calls fail with "sun.misc.Unsafe ... not available".
+_arrow_jvm_opts = "--add-opens=java.base/java.nio=ALL-UNNAMED"
+spark = (
+    SparkSession.builder
+    .master("local[*]")
+    .appName("pytest-novamart")
+    .config("spark.driver.extraJavaOptions", _arrow_jvm_opts)
+    .config("spark.executor.extraJavaOptions", _arrow_jvm_opts)
+    .getOrCreate()
+)
 
 # COMMAND ----------
 
