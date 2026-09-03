@@ -28,16 +28,18 @@ jobs:
     needs: run-tests
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      HAS_DATABRICKS_SECRET: ${{ secrets.DATABRICKS_HOST != '' }}
     steps:
       - name: Checkout Code
-        if: ${{ secrets.DATABRICKS_HOST != '' }}
+        if: env.HAS_DATABRICKS_SECRET == 'true'
         uses: actions/checkout@v3
       - name: Install Databricks CLI
-        if: ${{ secrets.DATABRICKS_HOST != '' }}
+        if: env.HAS_DATABRICKS_SECRET == 'true'
         run: |
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
       - name: Deploy Asset Bundle (DABs)
-        if: ${{ secrets.DATABRICKS_HOST != '' }}
+        if: env.HAS_DATABRICKS_SECRET == 'true'
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
