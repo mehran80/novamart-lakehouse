@@ -24,7 +24,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install pyspark==3.5.0 pytest pandas
+          pip install pyspark==3.5.0 pytest pandas pyarrow
 
       - name: Run Pytest
         run: |
