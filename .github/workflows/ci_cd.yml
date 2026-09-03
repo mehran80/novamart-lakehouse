@@ -8,7 +8,6 @@ on:
     branches:
       - main
 jobs:
-  # Job 1: Automated Pytest Unit Tests
   run-tests:
     runs-on: ubuntu-latest
     steps:
@@ -24,18 +23,21 @@ jobs:
       - name: Run Pytest
         run: |
           pytest tests/
-  # Job 2: Auto-Deploy to Databricks using DABs (Only on Merge to Main)
+
   deploy:
     needs: run-tests
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.DATABRICKS_HOST != ''
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
+        if: ${{ secrets.DATABRICKS_HOST != '' }}
         uses: actions/checkout@v3
       - name: Install Databricks CLI
+        if: ${{ secrets.DATABRICKS_HOST != '' }}
         run: |
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
       - name: Deploy Asset Bundle (DABs)
+        if: ${{ secrets.DATABRICKS_HOST != '' }}
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
