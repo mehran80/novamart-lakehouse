@@ -16,47 +16,82 @@ The objective of this platform is to build a highly optimized, audited, and secu
 ## 2. Architecture & Data Flow
 The platform is built entirely inside the Databricks Lakehouse, utilizing Databricks Workflows (Lakeflow Jobs) for orchestration, Auto Loader for streaming/batch ingestion, Delta Lake for storage, and Unity Catalog for centralized data governance.
 
-RAW LANDING (Volumes) BRONZE (Raw Logs) SILVER (Conformed) GOLD (Serving)
-┌───────────────────────┐ ┌───────────────────────┐
-┌───────────────────────────┐ ┌────────────────────────────────┐ │ - SQL
-Customers │ │ │ │ - sql_customers (clean) │ │ - dim_customer_master (MDM) │ │ -
-SQL Products │──▶│ Databricks │──▶│ - sql_products (clean) │──▶│ - dim_product
-(catalog) │ │ - SQL Sales │ │ Auto Loader │ │ - crm_customers (clean) │ │ -
-fct_sales (validated fact) │ │ - CRM Customers (API)│ │ (Append-Only, │ │ -
-sales_transactions │ │ - fct_clickstream (web events)│ └───────────────────────┘
-│ ingestion metadata) │ │ - clickstream │ └────────────────────────────────┘
-└───────────────────────┘ └───────────────────────────┘ │ REAL-TIME
-STREAMING ▼ ┌───────────────────────┐ ┌───────────────────────┐
-┌───────────────────────────┐ ┌────────────────────────────────┐ │ - Website
-Clicks │──▶│ Kafka / Auto Loader │──▶│ - clickstream (clean) │──▶│ -
-agg_daily_sales (BI) │ │ (Kafka Topic) │ │ (Streaming Ingest) │ │ │ │ -
-fct_low_stock_alerts (Real) │ └───────────────────────┘
-└───────────────────────┘ └───────────────────────────┘
-└────────────────────────────────┘
 
+```mermaid
+flowchart LR
+    subgraph RAW["RAW LANDING (Volumes)"]
+        R1[SQL Customers]
+        R2[SQL Products]
+        R3[SQL Sales]
+        R4[CRM Customers - API]
+        R5[Website Clicks]
+    end
+
+    subgraph BRONZE["BRONZE (Raw Logs)"]
+        B1[Databricks Auto Loader<br/>Append-Only, ingestion metadata]
+        B2[Kafka / Auto Loader<br/>Kafka Topic, Streaming Ingest]
+    end
+
+    subgraph SILVER["SILVER (Conformed)"]
+        S1[sql_customers - clean]
+        S2[sql_products - clean]
+        S3[crm_customers - clean]
+        S4[clickstream - clean]
+    end
+
+    subgraph GOLD["GOLD (Serving)"]
+        G1[dim_customer_master - MDM]
+        G2[dim_product - catalog]
+        G3[fct_sales - validated fact]
+        G4[fct_clickstream - web events]
+        G5[agg_daily_sales - BI]
+        G6[fct_low_stock_alerts - Real-time]
+    end
+
+    R1 --> B1
+    R2 --> B1
+    R3 --> B1
+    R4 --> B1
+    R5 -.Real-Time Streaming.-> B2
+
+    B1 --> S1
+    B1 --> S2
+    B1 --> S3
+    B2 --> S4
+
+    S1 --> G1
+    S3 --> G1
+    S2 --> G2
+    S1 --> G3
+    S4 --> G4
+    S1 --> G5
+    S4 --> G6
+```
 
 ---
 
 ## 3. Repository Structure
-The repository is structured following standard software engineering best practices, separating helper modules, transformation pipelines, governance, and testing suites:
+```
+novamart-lakehouse/
+├── databricks.yml                          # DAB bundle definition (Jobs & Targets as Code)
+├── src/
+│   ├── 00_setup_environment.ipynb
+│   ├── bronze/
+│   │   └── 00_ingest_raw_to_bronze.ipynb   # Parameterized Auto Loader helper
+│   ├── silver/
+│   │   ├── 01a_clean_sql_customers.ipynb
+│   │   ├── 01b_clean_crm_customers.ipynb
+│   │   ├── 01c_clean_sql_products.ipynb
+│   │   ├── 01d_clean_sql_sale_transactions.ipynb
+│   │   └── 01e_clean_clickstream.ipynb
+│   ├── gold/
+│   │   ├── 00_dim_customers.ipynb          # SQL + CRM Joined Master (MDM)
+│   │   ├── 01_dim_products.ipynb           # Product Dim with Margins
+│   │   ├── 02_fact_inventory.ipynb         # Inventory Fact
+│   │   ├── 03_fact_sales.ipynb             # Validated Sales Fact
+│   │   ├── 04_fact_clicks.ipynb
 
-novamart-lakehouse/ ├── databricks.yml # DAB bundle definition (Jobs & Targets
-as Code) ├── src/ │ ├── 00_setup_environment.ipynb │ ├── bronze/ │ │
-└── 00_ingest_raw_to_bronze.ipynb # Parameterized Auto Loader helper │ ├──
-silver/ │ │ ├── 01a_clean_sql_customers.ipynb │ │
-├── 01b_clean_crm_customers.ipynb │ │ ├── 01c_clean_sql_products.ipynb │ │
-├── 01d_clean_sql_sale_transactions.ipynb │ │ └── 01e_clean_clickstream.ipynb │
-├── gold/ │ │ ├── 00_dim_customers.ipynb # SQL + CRM Joined Master (MDM) │ │
-├── 01_dim_products.ipynb # Product Dim with Margins │ │
-├── 02_fact_inventory.ipynb # Inventory Fact │ │ ├── 03_fact_sales.ipynb #
-Validated Sales Fact │ │ ├── 04_fact_clicks.ipynb # Clickstream Fact │ │
-├── 05_fact_daily_sales.ipynb # Daily aggregate Datamart │ │
-└── 06_fact_low_stock_alert.ipynb # Dynamic low-stock streaming alert │ └──
-governance/ │ └── 04_apply_governance_policies.sql # Unity Catalog ABAC/RLS
-policies └── tests/ └── test_transformations.py # 12 Pytest unit tests (Arrow &
-Spark Connect safe)
-
-
+```
 ---
 
 ## 4. Key Design Decisions & Architectural Trade-offs
