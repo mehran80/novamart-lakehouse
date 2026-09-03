@@ -105,7 +105,7 @@ def test_bronze_crm_customers_silver():
          )
     ]
     raw_schema = [
-        "crm_last_updated", "customer_id", "last_compaign_engaged", "life_time_value_estimate", "churn_risk_score",
+        "crm_last_updated", "customer_id", "last_campaign_engaged", "lifetime_value_estimate", "churn_risk_score",
         "loyalty_tier", "marketing_opt_in", "preferred_channel", "_rescued_data", "ingesttime", "file_name"
     ]
 
@@ -120,7 +120,7 @@ def test_bronze_crm_customers_silver():
 
     expected_schema = StructType([
         StructField('customer_id', StringType(), True), 
-        StructField('last_compaign_engaged', StringType(), True), 
+        StructField('last_campaign_engaged', StringType(), True), 
         StructField('lifetime_value_estimate', DecimalType(10, 2), True),
         StructField('churn_risk_score', DecimalType(5, 3), True),
         StructField('loyalty_tier', StringType(), True), 
@@ -131,7 +131,7 @@ def test_bronze_crm_customers_silver():
     df_expected = spark.createDataFrame(expected_data, expected_schema)
 
     assert_cols_silver_crm_customers = [
-        "customer_id", "last_compaign_engaged", "lifetime_value_estimate", 
+        "customer_id", "last_campaign_engaged", "lifetime_value_estimate", 
         "churn_risk_score", "loyalty_tier", "marketing_opt_in", "preferred_channel"
     ]
     
